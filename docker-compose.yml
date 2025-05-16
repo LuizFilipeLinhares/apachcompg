@@ -1,19 +1,23 @@
-version: "3.9"
+version: '3.8'
 
 services:
-  database:
-    image: postgres
-    container_name: Postgres
-    restart: always
-    ports:
-      - 5432:5432
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sql_server_container
     environment:
-      - POSTGRES_USER=admin
-      - POSTGRES_PASSWORD=admin
-      - POSTGRES_DB=postgres-sandbox
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=satc@2024  
+    ports:
+      - "1433:1433"  
+    networks:
+      - sql_network
     volumes:
-      - pgdata:/data/postgres
+      - sql_data:/var/opt/mssql  
+
+networks:
+  sql_network:
+    driver: bridge
 
 volumes:
-  pgdata:
+  sql_data:
     driver: local
