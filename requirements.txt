@@ -1,6 +1,7 @@
 pandas
+psycopg2-binary
+sqlalchemy
 azure-identity
 azure-storage-file-datalake
 azure-core
-sqlalchemy
 python-dotenv

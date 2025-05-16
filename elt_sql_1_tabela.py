@@ -1,4 +1,6 @@
 import pandas as pd
+import psycopg2
+from sqlalchemy import create_engine
 from azure.identity import DefaultAzureCredential
 from azure.storage.filedatalake import DataLakeServiceClient
 from azure.core.exceptions import ResourceExistsError
@@ -9,13 +11,14 @@ from dotenv import load_dotenv
 # Carregar variáveis de ambiente do arquivo .env
 load_dotenv()
 
-# Configurações do SQL Server
-server = os.getenv("SQL_SERVER")
-database = os.getenv("SQL_DATABASE")
-schema = os.getenv("SQL_SCHEMA")
-table_name = os.getenv("SQL_TABLE_NAME")
-username = os.getenv("SQL_USERNAME")
-password = os.getenv("SQL_PASSWORD")
+# Configurações do PostgreSQL
+host = os.getenv("PG_HOST")
+port = os.getenv("PG_PORT")
+database = os.getenv("PG_DATABASE")
+schema = os.getenv("PG_SCHEMA")
+table_name = os.getenv("PG_TABLE_NAME")
+username = os.getenv("PG_USER")
+password = os.getenv("PG_PASSWORD")
 
 # Configurações do Azure Data Lake Storage
 account_name = os.getenv("ADLS_ACCOUNT_NAME")
@@ -31,9 +34,10 @@ password = quote_plus(password)
 # Consulta SQL
 query = f"SELECT * FROM {schema}.{table_name}"
 
-# Conectar ao SQL Server e ler os dados
-conn_str = f"mssql+pyodbc://{username}:{password}@{server}/{database}?driver=ODBC+Driver+17+for+SQL+Server"
-df = pd.read_sql(query, conn_str)
+# Conectar ao PostgreSQL e ler os dados
+conn_str = f"postgresql+psycopg2://{username}:{password}@{host}:{port}/{database}"
+engine = create_engine(conn_str)
+df = pd.read_sql(query, engine)
 
 # Escrever os dados no Azure Data Lake Storage
 file_system_client = DataLakeServiceClient(account_url=f"https://{account_name}.dfs.core.windows.net", 
@@ -46,7 +50,7 @@ try:
     directory_client.create_directory()
 except ResourceExistsError:
     print(f"O diretório '{directory_name}' já existe.")
-  
+
 # Carregar o arquivo para o Azure Data Lake Storage
 file_client = directory_client.get_file_client(f"{table_name}.csv")
 
